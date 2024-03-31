@@ -22,7 +22,7 @@ if [ ! -L "$DEV" ]; then
     exit 1
 fi
 
-PTS_DEV=`find $DEV -ls -type l | awk -F' ' '{ print $13 }'`
+PTS_DEV=`find $DEV -ls -type l | awk -F' ' '{ print $14 }'`
 
 STOPPED=0
 trap ctrl_c INT TERM
@@ -33,7 +33,7 @@ ctrl_c() {
 
 while [ $STOPPED -eq 0  ]; do
     pppd $PTS_DEV +ipv6 local \
-	 noauth novj noccp noaccomp nodefaultroute nomp nodetach \
+	 +pap novj noccp noaccomp nodefaultroute nodetach \
 	 debug silent 192.0.2.2:192.0.2.1
     sleep 2
 done
