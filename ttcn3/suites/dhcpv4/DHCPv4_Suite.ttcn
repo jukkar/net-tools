@@ -15,14 +15,6 @@
  * reaching it by hardware address instead would mean writing the frame
  * ourselves.
  *
- * One thing is deliberately not tested. RFC 2131 4.1 has a client use the
- * same transaction identifier for every message of one transaction, and the
- * client here counts it up by one on each retransmission of a discover
- * instead. That is worth knowing, both because a server may treat the
- * retransmissions as separate clients and because an identifier that counts
- * up is one an off path attacker can guess, but a test that asserted the
- * current behaviour would fail the day it was corrected.
- *
  * The system under test is tests/net/conformance/dhcpv4 in the Zephyr tree.
  */
 module DHCPv4_Suite {
@@ -335,6 +327,16 @@ testcase tc_unanswered_discover_is_repeated() runs on DHCPv4_MTC
 	}
 	if (v_next.chaddr != v_first.chaddr) {
 		setverdict(fail, "the client changed its hardware address between discovers");
+	}
+
+	/* RFC 2131 4.1: one identifier for every message of one exchange. A
+	 * retransmission is the same exchange, so a server that has already
+	 * seen the first one recognises the second as a repeat rather than as
+	 * another client asking.
+	 */
+	if (v_next.xid != v_first.xid) {
+		setverdict(fail, "the retransmitted discover carries a different "&
+			   "transaction identifier, so it looks like a new exchange");
 	}
 
 	setverdict(pass);
